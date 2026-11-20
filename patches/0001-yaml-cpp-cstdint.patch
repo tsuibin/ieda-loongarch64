@@ -1,0 +1,17 @@
+From: iEDA loongarch64 port <tsuibin@qq.com>
+Subject: [PATCH] yaml-cpp: include cstdint explicitly for GCC 16
+
+GCC 16 no longer includes <cstdint> transitively via the standard headers.
+yaml-cpp's emitterutils.cpp uses uint16_t without including it, which breaks
+compilation on AOSC OS with GCC 16.
+
+diff --git a/src/third_party/yaml-cpp/src/emitterutils.cpp b/src/third_party/yaml-cpp/src/emitterutils.cpp
+index 0113c45..bccb2a2 100644
+--- a/src/third_party/yaml-cpp/src/emitterutils.cpp
++++ b/src/third_party/yaml-cpp/src/emitterutils.cpp
+@@ -1,4 +1,5 @@
+ #include <algorithm>
++#include <cstdint>
+ #include <iomanip>
+ #include <sstream>
+ 

@@ -1,0 +1,26 @@
+From: iEDA loongarch64 port <tsuibin@qq.com>
+Subject: [PATCH] log: link glog/gflags dynamically when building static iEDA
+
+The upstream static build hardcodes libglog.a and libgflags.a, which makes
+CMake emit "-Wl,-Bstatic -lglog -lgflags". AOSC OS only ships shared glog
+0.7.1 / gflags 2.2.2 (no -static packages), so the final link fails with
+"cannot find -lglog". Use the plain dynamic library names instead; the
+resulting iEDA binary still works normally.
+
+diff --git a/src/utility/log/CMakeLists.txt b/src/utility/log/CMakeLists.txt
+index a35d6b8..d0d99f7 100644
+--- a/src/utility/log/CMakeLists.txt
++++ b/src/utility/log/CMakeLists.txt
+@@ -41,8 +41,10 @@ endif()
+ add_definitions(-DGLOG_USE_GLOG_EXPORT)
+ 
+ if(BUILD_STATIC_LIB)
+-  SET(LINK_glog   "libglog.a")
+-  SET(LINK_gflags "libgflags.a")
++  # loongarch64 AOSC ships glog/gflags as shared libs only (no lib*.a).
++  # Link them dynamically so the final iEDA binary can link successfully.
++  SET(LINK_glog   "glog")
++  SET(LINK_gflags "gflags")
+   ADD_LIBRARY(log STATIC ${SRC})
+ else()
+   SET(LINK_glog   "glog")
