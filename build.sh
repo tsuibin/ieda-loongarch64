@@ -18,11 +18,18 @@ command -v dpkg-deb >/dev/null || { echo "dpkg-deb not found" >&2; exit 1; }
 
 cd "$IEDA_DIR"
 
-echo "==> [1/5] applying upstream patches"
+echo "==> [1/5] applying upstream patches (idempotent)"
 for p in "$HOME/ieda-loongarch64"/patches/*.patch; do
   [ -e "$p" ] || continue
   echo "    $p"
-  patch -p1 --forward --batch < "$p" || true
+  if git apply --check --reverse "$p" >/dev/null 2>&1; then
+    echo "      already applied, skipping"
+  elif git apply --check "$p" >/dev/null 2>&1; then
+    git apply "$p"
+  else
+    echo "      ERROR: patch does not apply cleanly" >&2
+    exit 1
+  fi
 done
 
 echo "==> [2/5] downloading user-level dependencies (no root)"
